@@ -35,7 +35,7 @@ export class PipelineStack extends Stack {
     if (typeof nextjsApp === 'string' && nextjsApp !== '') {
       extraEnv.deploymentBucket = {
         type: BuildEnvironmentVariableType.PLAINTEXT,
-        value: 'nextjs-serverless-402079130675'
+        value: `nextjs-serverless-${account}`
       }
       extraEnv.appName = {
         type: BuildEnvironmentVariableType.PLAINTEXT,

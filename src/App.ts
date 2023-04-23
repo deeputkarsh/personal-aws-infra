@@ -5,6 +5,7 @@ import { ENV_VARS } from './config'
 import { type STAGES } from './constants/stages'
 import { AlbStack } from './stacks/alb-stack'
 import { VpcStack } from './stacks/vpc-stack'
+import { HelperStack } from './stacks/helper-stack'
 
 interface EnvVars {
   stage: STAGES
@@ -34,7 +35,7 @@ export default class MainApp extends App {
     this.stackEnv = { account, region }
   }
 
-  createStacks (): Stack[] {
+  createStacks (): Record<string, Stack> {
     const {
       stage,
       ssmPrefix
@@ -42,19 +43,19 @@ export default class MainApp extends App {
     } = this.envVars
     const env = this.stackEnv
 
-    const stacks: Stack[] = []
-    const vpcStack = new VpcStack(this, `${this.stackNamePrefix}-vpc`, {
+    const stacks: Record<string, Stack> = {}
+    stacks.vpc = new VpcStack(this, `${this.stackNamePrefix}-vpc`, {
       env,
       stage,
       ssmPrefix
     })
-    const albStack = new AlbStack(this, `${this.stackNamePrefix}-alb`, {
+    stacks.helper = new HelperStack(this, 'helper-stack', { env })
+    stacks.alb = new AlbStack(this, `${this.stackNamePrefix}-alb`, {
       env,
       stage,
-      vpc: vpcStack.vpc
+      vpcStack: stacks.vpc as VpcStack,
+      helperStack: stacks.helper as HelperStack
     })
-    stacks.push(vpcStack)
-    stacks.push(albStack)
     return stacks
   }
 }

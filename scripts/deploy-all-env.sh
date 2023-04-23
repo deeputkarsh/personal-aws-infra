@@ -2,6 +2,10 @@
 set -e
 
 country=${1}
+if [[ "$country" == "" ]]
+then
+country='ca'
+fi
 
 stack=${2}
 

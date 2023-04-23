@@ -5,7 +5,6 @@ const commonEnvs = [
   'stage',
   'ssmPrefix',
   'branchName',
-  'securityHeader',
   'acmCertificateId',
   'CDK_DEFAULT_ACCOUNT',
   'AWS_REGION'
@@ -19,7 +18,6 @@ const regionWiseEnv = {
   [REGIONS.mumbai]: [],
   [REGIONS.oregon]: [
     'vpcCIDR',
-    'bastianImage',
     'instanceImage'
   ]
 }
@@ -38,9 +36,7 @@ const {
   ssmPrefix = '',
   branchName = '',
   vpcCIDR = '',
-  bastianImage = '',
   instanceImage = '',
-  securityHeader = '',
   IS_TEMP_ENV = '',
   SCRIPT_TASK = '',
   acmCertificateId,
@@ -78,11 +74,9 @@ export const ENV_VARS = {
   ssmPrefix,
   branchName,
   vpcCIDR,
-  bastianImage: new GenericLinuxImage({ [region]: bastianImage }),
   instanceImage: new GenericLinuxImage({ [region]: instanceImage }),
   acmCertificateId,
   sslCertificates: [`arn:aws:acm:${region}:${account}:certificate/${acmCertificateId ?? ''}`],
-  securityHeader,
   DISABLED_PIPELINES: CREATE_DISABLED_PIPELINES === 'true'
 }
 
