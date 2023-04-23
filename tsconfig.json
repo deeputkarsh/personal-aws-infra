@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "bin",
     "target": "ES2020",
     "module": "commonjs",
     "lib": [
@@ -25,6 +27,7 @@
   },
   "exclude": [
     "node_modules",
+    "bin",
     "cdk.out"
   ]
 }
