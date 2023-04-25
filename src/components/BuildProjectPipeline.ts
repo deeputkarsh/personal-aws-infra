@@ -5,9 +5,6 @@ import {
   Cache, ComputeType, LinuxBuildImage,
   LocalCacheMode, PipelineProject
 } from 'aws-cdk-lib/aws-codebuild'
-import { Role } from 'aws-cdk-lib/aws-iam'
-import { CODE_BUILD_ROLE } from '../constants/roles'
-import { COMMON } from '../constants/ssm'
 import { type BuildProjectProps } from '../constants/types'
 
 export class BuildProjectPipeline extends PipelineProject {
@@ -20,17 +17,14 @@ export class BuildProjectPipeline extends PipelineProject {
       cacheConfig,
       buildSpecFile,
       extraEnv,
+      codeBuildRole,
       batchBuild = false,
       buildComputeType
     } = props
     let environmentVariables = {
       stage: { type: BuildEnvironmentVariableType.PLAINTEXT, value: stage },
       ssmPrefix: { type: BuildEnvironmentVariableType.PLAINTEXT, value: ssmPrefix },
-      AccountId: { type: BuildEnvironmentVariableType.PLAINTEXT, value: account },
-      SERVERLESS_DEPLOYMENT_BUCKET: { type: BuildEnvironmentVariableType.PARAMETER_STORE, value: `/${COMMON.SERVERLESS_DEPLOYMENT_BUCKET}` },
-      SECURITY_GROUP: { type: BuildEnvironmentVariableType.PARAMETER_STORE, value: `${ssmPrefix}/${COMMON.SECURITY_GROUP}` },
-      SUBNET_1: { type: BuildEnvironmentVariableType.PARAMETER_STORE, value: `${ssmPrefix}/${COMMON.SUBNET_1}` },
-      SUBNET_2: { type: BuildEnvironmentVariableType.PARAMETER_STORE, value: `${ssmPrefix}/${COMMON.SUBNET_2}` }
+      AccountId: { type: BuildEnvironmentVariableType.PLAINTEXT, value: account }
     }
     if (extraEnv != null) {
       environmentVariables = {
@@ -47,7 +41,7 @@ export class BuildProjectPipeline extends PipelineProject {
         LocalCacheMode.SOURCE,
         LocalCacheMode.CUSTOM
       ),
-      role: Role.fromRoleArn(scope, 'codebuild-role', CODE_BUILD_ROLE, { mutable: false }),
+      role: codeBuildRole,
       environment: {
         privileged: true,
         buildImage: LinuxBuildImage.STANDARD_5_0,

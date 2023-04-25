@@ -16,12 +16,12 @@ echo "Build successful"
 
 if [[ "$stack" == "" ]]
 then
-cdk --profile personal destroy --all
+cdk --profile ${AWS_PROFILE} destroy --all
 else
 stackName="${stage}-${stack}"
 if [[ "$IS_TEMP_ENV" == "true" ]]; then
 stackName="temp-${stackName}"
 fi
 # stackName="build-utility"
-cdk --profile personal destroy ${stackName}
+cdk --profile ${AWS_PROFILE} destroy ${stackName}
 fi

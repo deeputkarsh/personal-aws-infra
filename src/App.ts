@@ -6,6 +6,8 @@ import { type STAGES } from './constants/stages'
 import { AlbStack } from './stacks/alb-stack'
 import { VpcStack } from './stacks/vpc-stack'
 import { HelperStack } from './stacks/helper-stack'
+import { RDSStack } from './stacks/rds'
+import { PipelineEC2Stack } from './stacks/pipeline-ec2'
 
 interface EnvVars {
   stage: STAGES
@@ -38,8 +40,8 @@ export default class MainApp extends App {
   createStacks (): Record<string, Stack> {
     const {
       stage,
-      ssmPrefix
-      // branchName
+      ssmPrefix,
+      branchName
     } = this.envVars
     const env = this.stackEnv
 
@@ -49,6 +51,12 @@ export default class MainApp extends App {
       stage,
       ssmPrefix
     })
+    stacks.rds = new RDSStack(this, `${this.stackNamePrefix}-rds`, {
+      env,
+      stage,
+      ssmPrefix,
+      vpcStack: stacks.vpc as VpcStack
+    })
     stacks.helper = new HelperStack(this, 'helper-stack', { env })
     stacks.alb = new AlbStack(this, `${this.stackNamePrefix}-alb`, {
       env,
@@ -56,6 +64,30 @@ export default class MainApp extends App {
       vpcStack: stacks.vpc as VpcStack,
       helperStack: stacks.helper as HelperStack
     })
+    stacks.cms = new PipelineEC2Stack(this, `${this.stackNamePrefix}-cms`, {
+      env,
+      stage,
+      ssmPrefix,
+      repo: 'cms',
+      branchName,
+      helperStack: stacks.helper as HelperStack
+    })
+    stacks.resumeApp = new PipelineEC2Stack(this, `${this.stackNamePrefix}-resume-app`, {
+      env,
+      stage,
+      ssmPrefix,
+      repo: 'resume-app',
+      branchName,
+      helperStack: stacks.helper as HelperStack
+    })
+    /* stacks.portfolioApp = new PipelineEC2Stack(this, `${this.stackNamePrefix}-portfolio-app`, {
+      env,
+      stage,
+      ssmPrefix,
+      repo: 'portfolio-app',
+      branchName,
+      helperStack: stacks.helper as HelperStack
+    }) */
     return stacks
   }
 }

@@ -11,6 +11,6 @@ source "scripts/${country}.env.sh"
 
 npm run build
 
-# cdk --profile personal bootstrap
+# cdk --profile ${AWS_PROFILE} bootstrap
 
-cdk --profile personal ls
+cdk --profile ${AWS_PROFILE} ls

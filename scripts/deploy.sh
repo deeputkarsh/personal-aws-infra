@@ -15,14 +15,14 @@ npm run build
 echo "Build successful"
 if [[ "$stack" == "" ]]
 then
-cdk --profile personal synth
-cdk --profile personal deploy --all --require-approval never
+cdk --profile ${AWS_PROFILE} synth
+cdk --profile ${AWS_PROFILE} deploy --all --require-approval never
 else
 stackName="${stage}-${stack}"
 if [[ "$IS_TEMP_ENV" == "true" ]]; then
 stackName="temp-${stackName}"
 fi
 # stackName="build-utility"
-cdk --profile personal synth ${stackName}
-cdk --profile personal deploy ${stackName}
+cdk --profile ${AWS_PROFILE} synth ${stackName}
+cdk --profile ${AWS_PROFILE} deploy ${stackName}
 fi

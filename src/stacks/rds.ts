@@ -1,20 +1,19 @@
-import { type App, Stack, type StackProps } from 'aws-cdk-lib'
+import { type App, Stack, type StackProps, RemovalPolicy } from 'aws-cdk-lib'
 import {
-  InstanceClass,
-  InstanceSize,
-  InstanceType,
-  Peer,
-  Port,
-  SecurityGroup, SubnetType, type Vpc
+  InstanceClass, InstanceSize,
+  InstanceType, Peer, Port,
+  SecurityGroup, SubnetType
 } from 'aws-cdk-lib/aws-ec2'
 import {
-  DatabaseInstanceEngine, DatabaseInstanceFromSnapshot, MysqlEngineVersion, SubnetGroup
+  DatabaseInstanceEngine, DatabaseInstanceFromSnapshot,
+  MysqlEngineVersion, SubnetGroup
 } from 'aws-cdk-lib/aws-rds'
 import { StringParameter } from 'aws-cdk-lib/aws-ssm'
 import { COMMON } from '../constants/ssm'
+import { type VpcStack } from './vpc-stack'
 
 interface RDSStackProps extends StackProps {
-  vpc: Vpc
+  vpcStack: VpcStack
   stage: string
   ssmPrefix: string
 }
@@ -22,7 +21,7 @@ interface RDSStackProps extends StackProps {
 export class RDSStack extends Stack {
   readonly instance: DatabaseInstanceFromSnapshot
 
-  readonly subnetGroups: SubnetGroup[]
+  readonly subnetGroups: { public: SubnetGroup/* , private: SubnetGroup */ }
 
   readonly securityGrp: SecurityGroup
 
@@ -31,9 +30,9 @@ export class RDSStack extends Stack {
   constructor (scope: App, id: string, props: RDSStackProps) {
     super(scope, id, props)
     const {
-      vpc, stage, ssmPrefix
+      vpcStack, stage, ssmPrefix
     } = props
-
+    const vpc = vpcStack.vpc
     this.securityGrp = new SecurityGroup(this, 'rds-security-group', {
       vpc,
       securityGroupName: `${stage}-rds-sg`
@@ -45,23 +44,25 @@ export class RDSStack extends Stack {
       vpc,
       vpcSubnets: { subnetType: SubnetType.PUBLIC }
     })
-    const privateSubnetGrp = new SubnetGroup(this, 'private-subnet-grp', {
+    /* const privateSubnetGrp = new SubnetGroup(this, 'private-subnet-grp', {
       subnetGroupName: `${stage}-private-grp`,
       description: `${stage} vpc private subnet grp`,
       vpc,
-      vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_NAT }
-    })
-    this.subnetGroups = [privateSubnetGrp, publicSubnetGrp]
+      vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS }
+    }) */
+    this.subnetGroups = { public: publicSubnetGrp/* , private: privateSubnetGrp */ }
     this.instance = new DatabaseInstanceFromSnapshot(this, 'rds-instance', {
       vpc,
-      engine: DatabaseInstanceEngine.mysql({ version: MysqlEngineVersion.VER_8_0_28 }),
-      snapshotIdentifier: 'devdatabase',
-      instanceIdentifier: 'devdatabase',
+      engine: DatabaseInstanceEngine.mysql({ version: MysqlEngineVersion.VER_8_0_32 }),
+      snapshotIdentifier: 'my-db-snapshot',
+      instanceIdentifier: 'my-db',
       autoMinorVersionUpgrade: true,
       publiclyAccessible: true,
-      instanceType: InstanceType.of(InstanceClass.BURSTABLE3, InstanceSize.MEDIUM),
+      instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.MICRO),
       subnetGroup: publicSubnetGrp,
-      securityGroups: [this.securityGrp]
+      securityGroups: [this.securityGrp],
+      deleteAutomatedBackups: true,
+      removalPolicy: RemovalPolicy.SNAPSHOT
     })
     this.instance.node.addDependency(publicSubnetGrp)
 

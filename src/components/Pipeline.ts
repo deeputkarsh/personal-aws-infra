@@ -12,10 +12,9 @@ import {
   CodeDeployServerDeployAction, CodeStarConnectionsSourceAction,
   ManualApprovalAction, S3DeployAction
 } from 'aws-cdk-lib/aws-codepipeline-actions'
-import { Role } from 'aws-cdk-lib/aws-iam'
+import { type IRole } from 'aws-cdk-lib/aws-iam'
 import { Bucket } from 'aws-cdk-lib/aws-s3'
 import { OWNER } from '../constants/github'
-import { CODE_PIPELINE_ROLE } from '../constants/roles'
 import { STAGE, type STAGES } from '../constants/stages'
 import { type BuildProjectPipeline } from './BuildProjectPipeline'
 import { ENV_VARS } from '../config'
@@ -33,6 +32,7 @@ interface PipelineProps {
   repo: string
   stage: STAGES
   branchName: string
+  codePipelineRole: IRole
   withInvalidation?: boolean
   invalidationUserParameters?: any
   withCopyDist?: boolean
@@ -51,6 +51,7 @@ interface PipelineProps {
 export class CodePipeline extends Pipeline {
   constructor (scope: Stack, id: string, props: PipelineProps) {
     const {
+      codePipelineRole,
       batchBuild, codeDeployList,
       s3DeployConfig, isECS = false,
       stackName, account, region, repo,
@@ -66,14 +67,14 @@ export class CodePipeline extends Pipeline {
         repo,
         branch: branchName,
         output: sourcArtifact,
-        connectionArn: `arn:aws:codestar-connections:${region}:${account}:connection/079ac228-8b0e-401b-807a-7ecef22c4869`
+        connectionArn: `arn:aws:codestar-connections:${region}:${account}:connection/${ENV_VARS.codestarConnectionId}`
       })]
     }]
     super(scope, id, {
       pipelineName: `${stackName}-pipeline`,
       crossAccountKeys: false,
       artifactBucket: Bucket.fromBucketName(scope, 'artifact-bucket', `codepipeline-${region}-toothsi`),
-      role: Role.fromRoleArn(scope, 'codepipeline-role', CODE_PIPELINE_ROLE, { mutable: false }),
+      role: codePipelineRole,
       stages
     })
 

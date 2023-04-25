@@ -23,8 +23,8 @@ deployStack () {
   fi
   echo "building for ${stackName}"
   npm run build
-  # cdk --profile personal synth ${stackName}
-  cdk --profile personal deploy ${stackName} --require-approval never
+  # cdk --profile ${AWS_PROFILE} synth ${stackName}
+  cdk --profile ${AWS_PROFILE} deploy ${stackName} --require-approval never
 }
 
 deployStack uat

@@ -5,6 +5,7 @@ const commonEnvs = [
   'stage',
   'ssmPrefix',
   'branchName',
+  'codestarConnectionId',
   'acmCertificateId',
   'CDK_DEFAULT_ACCOUNT',
   'AWS_REGION'
@@ -35,6 +36,7 @@ const {
   stage = '',
   ssmPrefix = '',
   branchName = '',
+  codestarConnectionId = '',
   vpcCIDR = '',
   instanceImage = '',
   IS_TEMP_ENV = '',
@@ -74,6 +76,7 @@ export const ENV_VARS = {
   ssmPrefix,
   branchName,
   vpcCIDR,
+  codestarConnectionId,
   instanceImage: new GenericLinuxImage({ [region]: instanceImage }),
   acmCertificateId,
   sslCertificates: [`arn:aws:acm:${region}:${account}:certificate/${acmCertificateId ?? ''}`],
