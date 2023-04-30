@@ -9,7 +9,6 @@ import { COMMON } from '../constants/ssm'
 interface RedisStackProps extends StackProps {
   vpc: Vpc
   stage: string
-  ssmPrefix: string
 }
 
 export class RedisStack extends Stack {
@@ -23,7 +22,7 @@ export class RedisStack extends Stack {
 
   constructor (scope: App, id: string, props: RedisStackProps) {
     super(scope, id, props)
-    const { vpc, stage, ssmPrefix } = props
+    const { vpc, stage } = props
     this.redisSecurityGrp = new SecurityGroup(this, 'redis-security-group', {
       vpc,
       securityGroupName: `${stage}-redis-sg`
@@ -49,11 +48,11 @@ export class RedisStack extends Stack {
     this.ssmParams = [
       new StringParameter(this, 'redis-host', {
         stringValue: this.cluster.attrRedisEndpointAddress,
-        parameterName: `${ssmPrefix}/${COMMON.REDIS_HOST}`
+        parameterName: COMMON.REDIS_HOST
       }),
       new StringParameter(this, 'redis-port', {
         stringValue: this.cluster.attrRedisEndpointPort,
-        parameterName: `${ssmPrefix}/${COMMON.REDIS_PORT}`
+        parameterName: COMMON.REDIS_PORT
       })
     ]
     this.ssmParams[0].node.addDependency(this.cluster)

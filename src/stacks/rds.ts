@@ -6,7 +6,7 @@ import {
 } from 'aws-cdk-lib/aws-ec2'
 import {
   DatabaseInstanceEngine, DatabaseInstanceFromSnapshot,
-  MysqlEngineVersion, SubnetGroup
+  MysqlEngineVersion, StorageType, SubnetGroup
 } from 'aws-cdk-lib/aws-rds'
 import { StringParameter } from 'aws-cdk-lib/aws-ssm'
 import { COMMON } from '../constants/ssm'
@@ -15,7 +15,6 @@ import { type VpcStack } from './vpc-stack'
 interface RDSStackProps extends StackProps {
   vpcStack: VpcStack
   stage: string
-  ssmPrefix: string
 }
 
 export class RDSStack extends Stack {
@@ -30,7 +29,7 @@ export class RDSStack extends Stack {
   constructor (scope: App, id: string, props: RDSStackProps) {
     super(scope, id, props)
     const {
-      vpcStack, stage, ssmPrefix
+      vpcStack, stage
     } = props
     const vpc = vpcStack.vpc
     this.securityGrp = new SecurityGroup(this, 'rds-security-group', {
@@ -54,14 +53,16 @@ export class RDSStack extends Stack {
     this.instance = new DatabaseInstanceFromSnapshot(this, 'rds-instance', {
       vpc,
       engine: DatabaseInstanceEngine.mysql({ version: MysqlEngineVersion.VER_8_0_32 }),
-      snapshotIdentifier: 'my-db-snapshot',
+      snapshotIdentifier: StringParameter.valueForStringParameter(this, COMMON.MYSQL_SNAPSHOT), // 'my-db-snapshot',
       instanceIdentifier: 'my-db',
       autoMinorVersionUpgrade: true,
       publiclyAccessible: true,
       instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.MICRO),
+      storageType: StorageType.GP3,
       subnetGroup: publicSubnetGrp,
       securityGroups: [this.securityGrp],
       deleteAutomatedBackups: true,
+      allocatedStorage: 20,
       removalPolicy: RemovalPolicy.SNAPSHOT
     })
     this.instance.node.addDependency(publicSubnetGrp)
@@ -69,11 +70,11 @@ export class RDSStack extends Stack {
     this.ssmParams = [
       new StringParameter(this, 'mysql-host', {
         stringValue: this.instance.dbInstanceEndpointAddress,
-        parameterName: `${ssmPrefix}/${COMMON.MYSQL_HOST}`
+        parameterName: COMMON.MYSQL_HOST
       }),
       new StringParameter(this, 'mysql-port', {
         stringValue: this.instance.dbInstanceEndpointAddress,
-        parameterName: `${ssmPrefix}/${COMMON.MYSQL_PORT}`
+        parameterName: COMMON.MYSQL_PORT
       })
     ]
     this.ssmParams[0].node.addDependency(this.instance)

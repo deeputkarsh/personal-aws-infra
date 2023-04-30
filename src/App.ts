@@ -8,6 +8,7 @@ import { VpcStack } from './stacks/vpc-stack'
 import { HelperStack } from './stacks/helper-stack'
 import { RDSStack } from './stacks/rds'
 import { PipelineEC2Stack } from './stacks/pipeline-ec2'
+import { APP_CONFIG_MAP, applications } from './constants/application-config'
 
 interface EnvVars {
   stage: STAGES
@@ -48,37 +49,33 @@ export default class MainApp extends App {
     const stacks: Record<string, Stack> = {}
     stacks.vpc = new VpcStack(this, `${this.stackNamePrefix}-vpc`, {
       env,
-      stage,
-      ssmPrefix
+      stage
     })
     stacks.rds = new RDSStack(this, `${this.stackNamePrefix}-rds`, {
       env,
       stage,
-      ssmPrefix,
       vpcStack: stacks.vpc as VpcStack
     })
     stacks.helper = new HelperStack(this, 'helper-stack', { env })
-    stacks.alb = new AlbStack(this, `${this.stackNamePrefix}-alb`, {
+    const albStack = new AlbStack(this, `${this.stackNamePrefix}-alb`, {
       env,
       stage,
       vpcStack: stacks.vpc as VpcStack,
       helperStack: stacks.helper as HelperStack
     })
-    stacks.cms = new PipelineEC2Stack(this, `${this.stackNamePrefix}-cms`, {
-      env,
-      stage,
-      ssmPrefix,
-      repo: 'cms',
-      branchName,
-      helperStack: stacks.helper as HelperStack
-    })
-    stacks.resumeApp = new PipelineEC2Stack(this, `${this.stackNamePrefix}-resume-app`, {
-      env,
-      stage,
-      ssmPrefix,
-      repo: 'resume-app',
-      branchName,
-      helperStack: stacks.helper as HelperStack
+    stacks.alb = albStack
+    applications.forEach((appKey) => {
+      const appConfig = APP_CONFIG_MAP[appKey]
+      const { repo, appName } = appConfig
+      stacks[appKey] = new PipelineEC2Stack(this, `${this.stackNamePrefix}-${appName}`, {
+        env,
+        stage,
+        ssmPrefix,
+        repo,
+        branchName,
+        helperStack: stacks.helper as HelperStack
+      })
+      albStack.addTargetApplication(appConfig)
     })
     /* stacks.portfolioApp = new PipelineEC2Stack(this, `${this.stackNamePrefix}-portfolio-app`, {
       env,

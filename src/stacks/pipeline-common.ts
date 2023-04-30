@@ -5,6 +5,7 @@ import { BuildProjectPipeline } from '../components/BuildProjectPipeline'
 import { CodePipeline } from '../components/Pipeline'
 import { type BuildStackProps } from '../constants/types'
 import { type Role } from 'aws-cdk-lib/aws-iam'
+import { type IBucket } from 'aws-cdk-lib/aws-s3'
 
 interface CommonPipelineProps extends BuildStackProps {
   nextjsApp?: string
@@ -65,6 +66,7 @@ export class PipelineStack extends Stack {
       copyDistUserParam,
       stage,
       codePipelineRole: helperStack.serviceRoles.codePipelineRole as Role,
+      codePipelineBucket: helperStack.buckets.codePipeline as IBucket,
       codeBuildProject: this.buildProject
     })
   }

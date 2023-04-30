@@ -9,7 +9,6 @@ import { ENV_VARS } from '../config'
 
 interface VpcStackProps extends StackProps {
   stage: string
-  ssmPrefix: string
 }
 interface SgMap {
   ssh: SecurityGroup

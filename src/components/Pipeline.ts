@@ -13,8 +13,8 @@ import {
   ManualApprovalAction, S3DeployAction
 } from 'aws-cdk-lib/aws-codepipeline-actions'
 import { type IRole } from 'aws-cdk-lib/aws-iam'
-import { Bucket } from 'aws-cdk-lib/aws-s3'
-import { OWNER } from '../constants/github'
+import { type IBucket, type Bucket } from 'aws-cdk-lib/aws-s3'
+
 import { STAGE, type STAGES } from '../constants/stages'
 import { type BuildProjectPipeline } from './BuildProjectPipeline'
 import { ENV_VARS } from '../config'
@@ -33,6 +33,7 @@ interface PipelineProps {
   stage: STAGES
   branchName: string
   codePipelineRole: IRole
+  codePipelineBucket: IBucket
   withInvalidation?: boolean
   invalidationUserParameters?: any
   withCopyDist?: boolean
@@ -51,7 +52,7 @@ interface PipelineProps {
 export class CodePipeline extends Pipeline {
   constructor (scope: Stack, id: string, props: PipelineProps) {
     const {
-      codePipelineRole,
+      codePipelineRole, codePipelineBucket,
       batchBuild, codeDeployList,
       s3DeployConfig, isECS = false,
       stackName, account, region, repo,
@@ -63,7 +64,7 @@ export class CodePipeline extends Pipeline {
       stageName: 'CodeCommit',
       actions: [new CodeStarConnectionsSourceAction({
         actionName: 'Source',
-        owner: OWNER,
+        owner: ENV_VARS.GIT_OWNER,
         repo,
         branch: branchName,
         output: sourcArtifact,
@@ -73,7 +74,7 @@ export class CodePipeline extends Pipeline {
     super(scope, id, {
       pipelineName: `${stackName}-pipeline`,
       crossAccountKeys: false,
-      artifactBucket: Bucket.fromBucketName(scope, 'artifact-bucket', `codepipeline-${region}-toothsi`),
+      artifactBucket: codePipelineBucket,
       role: codePipelineRole,
       stages
     })

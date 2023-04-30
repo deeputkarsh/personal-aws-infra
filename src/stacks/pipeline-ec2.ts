@@ -5,6 +5,7 @@ import { BuildProjectPipeline } from '../components/BuildProjectPipeline'
 import { CodePipeline } from '../components/Pipeline'
 import { CODE_DEPLOY_TAG_NAME, EC2_CODE_DEPLPOY_TAG_MAP } from '../constants/ec2'
 import { type BuildStackProps } from '../constants/types'
+import { type IBucket } from 'aws-cdk-lib/aws-s3'
 
 export class PipelineEC2Stack extends Stack {
   readonly codePipeline: CodePipeline
@@ -57,6 +58,7 @@ export class PipelineEC2Stack extends Stack {
       branchName,
       stage,
       codePipelineRole: helperStack.serviceRoles.codePipelineRole as Role,
+      codePipelineBucket: helperStack.buckets.codePipeline as IBucket,
       codeBuildProject: this.codeBuildProject,
       codeDeployList: [{
         artifactName: 'BuiltCode',

@@ -18,6 +18,7 @@ import { ENV_VARS } from '../config'
 import { CODE_DEPLOY_TAG_NAME, EC2_CODE_DEPLPOY_TAG_MAP } from '../constants/ec2'
 import { type VpcStack } from './vpc-stack'
 import { type HelperStack } from './helper-stack'
+import { type AppConfig } from '../constants/application-config'
 
 interface AlbStackProps extends StackProps {
   vpcStack: VpcStack
@@ -94,6 +95,25 @@ export class AlbStack extends Stack {
       withTestListner,
       defaultTargetGroup,
       securityGroup: albSecurityGroup
+    })
+  }
+
+  addTargetApplication (appConfig: AppConfig): void {
+    const {
+      appName, conditions, port, priority,
+      healthCheckPath, healthCheckTimeout
+    } = appConfig
+    this.alb.mainListner.addTargets(appName, {
+      conditions,
+      priority,
+      healthCheck: {
+        port: String(port),
+        path: healthCheckPath,
+        timeout: healthCheckTimeout
+      },
+      protocol: ApplicationProtocol.HTTP,
+      deregistrationDelay: Duration.seconds(10),
+      targets: [new InstanceTarget(this.instances.appServer)]
     })
   }
 }
