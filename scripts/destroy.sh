@@ -1,31 +1,18 @@
 #!/bin/bash
 set -e
 
-country=${1}
-if [[ "$country" == "" ]]
-then
-country='ca'
-fi
+source "scripts/common.sh"
+
+setCountry ${1} ${2}
 
 source "scripts/${country}.env.sh"
 
-stack=${2}
-
-npm run build
-echo "Build successful"
+runBuild
 
 if [[ "$stack" == "" ]]
 then
-cdk --profile ${AWS_PROFILE} destroy --all
+destroyStack --all
 else
-stackName="${stage}-${stack}"
-if [[ "$IS_TEMP_ENV" == "true" ]]; then
-stackName="temp-${stackName}"
-fi
-if [[ "$stack" == "helper" ]]
-then
-stackName="helper-stack"
-fi
-
-cdk --profile ${AWS_PROFILE} destroy ${stackName}
+setStackName
+destroyStack ${stackName}
 fi

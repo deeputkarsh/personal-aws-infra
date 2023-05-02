@@ -1,16 +1,12 @@
 #!/bin/bash
 set -e
 
-country=${1}
-if [[ "$country" == "" ]]
-then
-country='ca'
-fi
+source "scripts/common.sh"
+
+setCountry ${1}
 
 source "scripts/${country}.env.sh"
 
-npm run build
+runBuild
 
-# cdk --profile ${AWS_PROFILE} bootstrap
-
-cdk --profile ${AWS_PROFILE} ls
+listStack
