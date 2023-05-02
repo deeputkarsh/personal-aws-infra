@@ -28,23 +28,25 @@ setStackName () {
 listStack () {
   cdk --profile ${AWS_PROFILE} ls
 }
+synthStack () {
+  cdk --profile ${AWS_PROFILE} synth ${1}
+}
 deployStack () {
-  cdk --profile ${AWS_PROFILE} synth ${stackName}
-  cdk --profile ${AWS_PROFILE} deploy ${stackName}
+  synthStack ${stackName}
+  cdk --profile ${AWS_PROFILE} deploy ${stackName} ${1}
 }
 deployAllStack () {
-  cdk --profile ${AWS_PROFILE} synth
+  synthStack
   cdk --profile ${AWS_PROFILE} deploy --all --require-approval never
 }
 diffStack () {
-  cdk --profile ${AWS_PROFILE} synth ${stackName}
+  synthStack ${stackName}
   cdk --profile ${AWS_PROFILE} diff ${stackName}
 }
 destroyStack () {
-  cdk --profile ${AWS_PROFILE} destroy ${1}
+  cdk --profile ${AWS_PROFILE} destroy ${1} ${2}
 }
 reCreateStack () {
-  cdk --profile ${AWS_PROFILE} destroy ${stackName}
-  cdk --profile ${AWS_PROFILE} synth ${stackName}
-  cdk --profile ${AWS_PROFILE} deploy ${stackName} --require-approval never
+  destroyStack ${stackName}
+  deployStack --require-approval never
 }
