@@ -60,8 +60,7 @@ export default class MainApp extends App {
     const albStack = new AlbStack(this, `${this.stackNamePrefix}-alb`, {
       env,
       stage,
-      vpcStack: stacks.vpc as VpcStack,
-      helperStack: stacks.helper as HelperStack
+      vpcStack: stacks.vpc as VpcStack
     })
     stacks.alb = albStack
     applications.forEach((appKey) => {
@@ -72,8 +71,7 @@ export default class MainApp extends App {
         stage,
         ssmPrefix,
         repo,
-        branchName,
-        helperStack: stacks.helper as HelperStack
+        branchName
       })
       albStack.addTargetApplication(appConfig)
     })

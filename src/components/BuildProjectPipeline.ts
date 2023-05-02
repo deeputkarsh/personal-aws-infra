@@ -6,6 +6,9 @@ import {
   LocalCacheMode, PipelineProject
 } from 'aws-cdk-lib/aws-codebuild'
 import { type BuildProjectProps } from '../constants/types'
+import { Role } from 'aws-cdk-lib/aws-iam'
+import { StringParameter } from 'aws-cdk-lib/aws-ssm'
+import { COMMON } from '../constants/ssm'
 
 export class BuildProjectPipeline extends PipelineProject {
   constructor (scope: Stack, id: string, props: BuildProjectProps) {
@@ -17,7 +20,6 @@ export class BuildProjectPipeline extends PipelineProject {
       cacheConfig,
       buildSpecFile,
       extraEnv,
-      codeBuildRole,
       batchBuild = false,
       buildComputeType
     } = props
@@ -41,7 +43,7 @@ export class BuildProjectPipeline extends PipelineProject {
         LocalCacheMode.SOURCE,
         LocalCacheMode.CUSTOM
       ),
-      role: codeBuildRole,
+      role: Role.fromRoleArn(scope, 'code-build-role', StringParameter.valueForStringParameter(scope, COMMON['code-build-role']), { mutable: false }),
       environment: {
         privileged: true,
         buildImage: LinuxBuildImage.STANDARD_5_0,

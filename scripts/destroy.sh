@@ -22,6 +22,10 @@ stackName="${stage}-${stack}"
 if [[ "$IS_TEMP_ENV" == "true" ]]; then
 stackName="temp-${stackName}"
 fi
-# stackName="build-utility"
+if [[ "$stack" == "helper" ]]
+then
+stackName="helper-stack"
+fi
+
 cdk --profile ${AWS_PROFILE} destroy ${stackName}
 fi

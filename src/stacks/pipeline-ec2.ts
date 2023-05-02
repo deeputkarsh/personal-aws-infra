@@ -1,11 +1,12 @@
 import { type App, Stack } from 'aws-cdk-lib'
 import { InstanceTagSet, ServerApplication, ServerDeploymentGroup } from 'aws-cdk-lib/aws-codedeploy'
-import { type Role } from 'aws-cdk-lib/aws-iam'
+import { Role } from 'aws-cdk-lib/aws-iam'
 import { BuildProjectPipeline } from '../components/BuildProjectPipeline'
 import { CodePipeline } from '../components/Pipeline'
 import { CODE_DEPLOY_TAG_NAME, EC2_CODE_DEPLPOY_TAG_MAP } from '../constants/ec2'
 import { type BuildStackProps } from '../constants/types'
-import { type IBucket } from 'aws-cdk-lib/aws-s3'
+import { StringParameter } from 'aws-cdk-lib/aws-ssm'
+import { COMMON } from '../constants/ssm'
 
 export class PipelineEC2Stack extends Stack {
   readonly codePipeline: CodePipeline
@@ -22,7 +23,6 @@ export class PipelineEC2Stack extends Stack {
       repo,
       stage,
       ssmPrefix,
-      helperStack,
       buildComputeType,
       buildSpecFile,
       branchName = 'main',
@@ -36,7 +36,6 @@ export class PipelineEC2Stack extends Stack {
       ssmPrefix,
       account,
       stackName,
-      codeBuildRole: helperStack.serviceRoles.codeBuildRole as Role,
       buildComputeType,
       buildSpecFile
     })
@@ -44,7 +43,7 @@ export class PipelineEC2Stack extends Stack {
     this.codeDeployDeploymentGrp = new ServerDeploymentGroup(this, 'code-deploy-deployment-grp', {
       application: this.codeDeployApp,
       deploymentGroupName: stackName,
-      role: helperStack.serviceRoles.codeDeployRole as Role,
+      role: Role.fromRoleArn(this, 'code-deploy-role', StringParameter.valueForStringParameter(this, COMMON['code-deploy-role']), { mutable: false }),
       autoRollback: { failedDeployment: true, stoppedDeployment: true },
       ec2InstanceTags: new InstanceTagSet({
         [CODE_DEPLOY_TAG_NAME]: [EC2_CODE_DEPLPOY_TAG_MAP[stage]]
@@ -57,8 +56,6 @@ export class PipelineEC2Stack extends Stack {
       account,
       branchName,
       stage,
-      codePipelineRole: helperStack.serviceRoles.codePipelineRole as Role,
-      codePipelineBucket: helperStack.buckets.codePipeline as IBucket,
       codeBuildProject: this.codeBuildProject,
       codeDeployList: [{
         artifactName: 'BuiltCode',

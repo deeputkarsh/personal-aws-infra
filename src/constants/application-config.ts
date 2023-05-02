@@ -25,7 +25,7 @@ export const APP_CONFIG_MAP: Record<string, AppConfig> = {
     priority: 100,
     port: 1337,
     healthCheckPath: '/',
-    healthCheckTimeout: Duration.minutes(5),
+    healthCheckTimeout: Duration.minutes(2),
     conditions: [ListenerCondition.hostHeaders([HOSTS.cms])]
   },
   resumeApp: {
@@ -35,7 +35,7 @@ export const APP_CONFIG_MAP: Record<string, AppConfig> = {
     priority: 500,
     port: 2000,
     healthCheckPath: '/',
-    healthCheckTimeout: Duration.minutes(5),
+    healthCheckTimeout: Duration.minutes(2),
     conditions: [ListenerCondition.hostHeaders([HOSTS.resumeApp])]
   },
   portfolioApp: {
@@ -45,7 +45,7 @@ export const APP_CONFIG_MAP: Record<string, AppConfig> = {
     priority: 1000,
     port: 4000,
     healthCheckPath: '/',
-    healthCheckTimeout: Duration.minutes(5),
+    healthCheckTimeout: Duration.minutes(2),
     conditions: [ListenerCondition.hostHeaders([HOSTS.portfolioApp])]
   }
 }

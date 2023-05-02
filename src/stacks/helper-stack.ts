@@ -3,7 +3,7 @@ import {
 } from 'aws-cdk-lib'
 import { Bucket, type IBucket } from 'aws-cdk-lib/aws-s3'
 import { StringParameter } from 'aws-cdk-lib/aws-ssm'
-import { COMMON } from '../constants/ssm'
+import { type AvailableSSM, COMMON } from '../constants/ssm'
 import { FindResource } from '../utility/check-resource'
 import { Role, type IRole, ServicePrincipal, ManagedPolicy } from 'aws-cdk-lib/aws-iam'
 
@@ -11,10 +11,8 @@ interface BucketMap {
   sls?: IBucket
   codePipeline?: IBucket
 }
-interface SsmMap {
-  sls?: StringParameter
-  codePipeline?: StringParameter
-}
+
+type SsmMap = Record<AvailableSSM, StringParameter> | Record<string, never>
 interface ServiceRoles {
   ec2Role?: IRole
   codeBuildRole?: IRole
@@ -39,8 +37,8 @@ export class HelperStack extends Stack {
     this.buckets = {}
     this.serviceRoles = {}
 
-    this.createBucket(`codepipeline-${region}-${account}`, 'sls', 'sls-bucket')
-    this.createBucket(`serverless-${region}-${account}`, 'codePipeline', 'code-pipeline-bucket')
+    this.createBucket(`codepipeline-${region}-${account}`, 'codePipeline', 'code-pipeline-bucket')
+    this.createBucket(`serverless-${region}-${account}`, 'sls', 'sls-bucket')
 
     this.createRole('ec2Role', 'ec2-iam-role', 'ec2.amazonaws.com')
     this.createRole('codeBuildRole', 'code-build-role', 'codebuild.amazonaws.com')
@@ -55,12 +53,10 @@ export class HelperStack extends Stack {
       } else {
         this.buckets[bucketKey] = new Bucket(this, resourceId, { bucketName, removalPolicy: RemovalPolicy.DESTROY })
       }
-      if (bucketKey === 'sls') {
-        this.ssmParams[bucketKey] = new StringParameter(this, `ssm-${resourceId}`, {
-          stringValue: bucketName,
-          parameterName: COMMON.SERVERLESS_DEPLOYMENT_BUCKET
-        })
-      }
+      this.ssmParams[resourceId as AvailableSSM] = new StringParameter(this, `ssm-${resourceId}`, {
+        stringValue: bucketName,
+        parameterName: COMMON[resourceId as AvailableSSM]
+      })
     }).catch(console.error)
   }
 
@@ -76,6 +72,10 @@ export class HelperStack extends Stack {
           managedPolicies: [ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')]
         })
       }
+      this.ssmParams[roleName as AvailableSSM] = new StringParameter(this, `ssm-${roleName}`, {
+        stringValue: this.serviceRoles[roleKey]?.roleArn ?? ' ',
+        parameterName: COMMON[roleName as AvailableSSM]
+      })
     }).catch(console.error)
   }
 }

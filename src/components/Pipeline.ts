@@ -12,12 +12,14 @@ import {
   CodeDeployServerDeployAction, CodeStarConnectionsSourceAction,
   ManualApprovalAction, S3DeployAction
 } from 'aws-cdk-lib/aws-codepipeline-actions'
-import { type IRole } from 'aws-cdk-lib/aws-iam'
-import { type IBucket, type Bucket } from 'aws-cdk-lib/aws-s3'
+import { Role } from 'aws-cdk-lib/aws-iam'
+import { Bucket } from 'aws-cdk-lib/aws-s3'
 
 import { STAGE, type STAGES } from '../constants/stages'
 import { type BuildProjectPipeline } from './BuildProjectPipeline'
 import { ENV_VARS } from '../config'
+import { StringParameter } from 'aws-cdk-lib/aws-ssm'
+import { COMMON } from '../constants/ssm'
 
 interface codeDeployItem {
   actionName: string
@@ -32,8 +34,6 @@ interface PipelineProps {
   repo: string
   stage: STAGES
   branchName: string
-  codePipelineRole: IRole
-  codePipelineBucket: IBucket
   withInvalidation?: boolean
   invalidationUserParameters?: any
   withCopyDist?: boolean
@@ -52,10 +52,9 @@ interface PipelineProps {
 export class CodePipeline extends Pipeline {
   constructor (scope: Stack, id: string, props: PipelineProps) {
     const {
-      codePipelineRole, codePipelineBucket,
       batchBuild, codeDeployList,
       s3DeployConfig, isECS = false,
-      stackName, account, region, repo,
+      stackName, repo,
       branchName, codeBuildProject, stage,
       approvalAfterBuild = Boolean(codeDeployList)
     } = props
@@ -68,14 +67,14 @@ export class CodePipeline extends Pipeline {
         repo,
         branch: branchName,
         output: sourcArtifact,
-        connectionArn: `arn:aws:codestar-connections:${region}:${account}:connection/${ENV_VARS.codestarConnectionId}`
+        connectionArn: ENV_VARS.codestarConnectionARN
       })]
     }]
     super(scope, id, {
       pipelineName: `${stackName}-pipeline`,
       crossAccountKeys: false,
-      artifactBucket: codePipelineBucket,
-      role: codePipelineRole,
+      artifactBucket: Bucket.fromBucketName(scope, 'code-pipeline-bucket', StringParameter.valueForStringParameter(scope, COMMON['code-pipeline-bucket'])),
+      role: Role.fromRoleArn(scope, 'code-pipeline-role', StringParameter.valueForStringParameter(scope, COMMON['code-pipeline-role']), { mutable: false }),
       stages
     })
 

@@ -22,7 +22,10 @@ stackName="${stage}-${stack}"
 if [[ "$IS_TEMP_ENV" == "true" ]]; then
 stackName="temp-${stackName}"
 fi
-# stackName="helper-stack"
+if [[ "$stack" == "helper" ]]
+then
+stackName="helper-stack"
+fi
 cdk --profile ${AWS_PROFILE} synth ${stackName}
 cdk --profile ${AWS_PROFILE} deploy ${stackName}
 fi
