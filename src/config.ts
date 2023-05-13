@@ -46,7 +46,10 @@ const {
   acmCertificateId,
   CREATE_DISABLED_PIPELINES = '',
   CDK_DEFAULT_ACCOUNT: account = '',
-  AWS_REGION: region = ''
+  AWS_REGION: region = '',
+  MYSQL_USER = '',
+  MYSQL_PASSWORD ='',
+  MYSQL_DATABASE = '',
 } = process.env
 
 export const validateEnv = (): void => {
@@ -79,6 +82,9 @@ export const ENV_VARS = {
   branchName,
   vpcCIDR,
   GIT_OWNER,
+  MYSQL_USER,
+  MYSQL_PASSWORD,
+  MYSQL_DATABASE,
   codestarConnectionARN,
   instanceImage: new GenericLinuxImage({ [region]: instanceImage }),
   acmCertificateId,

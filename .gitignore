@@ -4,6 +4,7 @@
 node_modules
 bin
 
+.env
 scripts/*.env.sh
 local
 

@@ -10,7 +10,7 @@ import {
 import {
   CodeBuildAction, type CodeBuildActionProps, CodeDeployEcsDeployAction,
   CodeDeployServerDeployAction, CodeStarConnectionsSourceAction,
-  ManualApprovalAction, S3DeployAction
+  /* ManualApprovalAction, */ S3DeployAction
 } from 'aws-cdk-lib/aws-codepipeline-actions'
 import { Role } from 'aws-cdk-lib/aws-iam'
 import { Bucket } from 'aws-cdk-lib/aws-s3'
@@ -136,12 +136,12 @@ export class CodePipeline extends Pipeline {
       stageName: 'CodeBuild',
       actions: [new CodeBuildAction(codebuildActionProp)]
     }
-    const manualApprovalAction = {
+    /* const manualApprovalAction = {
       stageName: 'Approval',
       actions: [new ManualApprovalAction({ actionName: 'ManualApproval' })]
-    }
+    } */
     if (!approvalAfterBuild && isProductionPipeline) {
-      this.addStage(manualApprovalAction)
+      // this.addStage(manualApprovalAction)
     } else if (ENV_VARS.DISABLED_PIPELINES) {
       codebuildOptions = {
         ...codebuildOptions,
@@ -152,7 +152,7 @@ export class CodePipeline extends Pipeline {
     this.addStage(codebuildOptions)
     if (codeDeployActions.length > 0) {
       if (isProductionPipeline && approvalAfterBuild) {
-        this.addStage(manualApprovalAction)
+        // this.addStage(manualApprovalAction)
       }
       this.addStage({
         stageName: 'CodeDeploy',

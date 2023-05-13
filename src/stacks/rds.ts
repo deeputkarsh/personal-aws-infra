@@ -1,4 +1,4 @@
-import { type App, Stack, type StackProps, RemovalPolicy } from 'aws-cdk-lib'
+import { type App, Stack, type StackProps, RemovalPolicy, Duration } from 'aws-cdk-lib'
 import {
   InstanceClass, InstanceSize,
   InstanceType, Peer, Port,
@@ -11,6 +11,7 @@ import {
 import { StringParameter } from 'aws-cdk-lib/aws-ssm'
 import { COMMON } from '../constants/ssm'
 import { type VpcStack } from './vpc-stack'
+import { ENV_VARS } from '../config'
 
 interface RDSStackProps extends StackProps {
   vpcStack: VpcStack
@@ -63,6 +64,7 @@ export class RDSStack extends Stack {
       securityGroups: [this.securityGrp],
       deleteAutomatedBackups: true,
       allocatedStorage: 20,
+      backupRetention: Duration.days(0),
       removalPolicy: RemovalPolicy.SNAPSHOT
     })
     this.instance.node.addDependency(publicSubnetGrp)
@@ -72,9 +74,17 @@ export class RDSStack extends Stack {
         stringValue: this.instance.dbInstanceEndpointAddress,
         parameterName: COMMON.MYSQL_HOST
       }),
-      new StringParameter(this, 'mysql-port', {
-        stringValue: this.instance.dbInstanceEndpointAddress,
-        parameterName: COMMON.MYSQL_PORT
+      new StringParameter(this, 'mysql-user', {
+        stringValue: ENV_VARS.MYSQL_USER,
+        parameterName: COMMON.MYSQL_USER
+      }),
+      new StringParameter(this, 'mysql-pass', {
+        stringValue: ENV_VARS.MYSQL_PASSWORD,
+        parameterName: COMMON.MYSQL_PASSWORD
+      }),
+      new StringParameter(this, 'mysql-database', {
+        stringValue: ENV_VARS.MYSQL_DATABASE,
+        parameterName: COMMON.MYSQL_DATABASE
       })
     ]
     this.ssmParams[0].node.addDependency(this.instance)
