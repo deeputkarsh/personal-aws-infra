@@ -39,7 +39,7 @@ export const APP_CONFIG_MAP: Record<string, AppConfig> = {
     conditions: [ListenerCondition.hostHeaders([HOSTS.resumeApp])]
   },
   portfolioApp: {
-    repo: 'portfolio-app',
+    repo: 'portfolio',
     appName: 'portfolio-app',
     buildType: 'ec2',
     priority: 1000,
@@ -51,4 +51,4 @@ export const APP_CONFIG_MAP: Record<string, AppConfig> = {
 }
 export type appNames = keyof typeof APP_CONFIG_MAP
 export const applications: appNames[] = Object.keys(APP_CONFIG_MAP)
-  .filter(appKey => appKey !== 'portfolioApp')
+  // .filter(appKey => appKey !== 'portfolioApp')
